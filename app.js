@@ -111,7 +111,8 @@ startGameBtn.addEventListener('click', ()=>{
 
 function showPlayer(i){
   revealed = false;
-  revealBanner.classList.add('hidden');
+  // ensure banner is closed when showing new player
+  try{ closeBanner(); }catch(e){ revealBanner.style.transform = 'translateY(100%)'; revealed = false; }
   const name = players[i];
   playerNameLabel.textContent = name;
   // prepare reveal content
@@ -149,47 +150,160 @@ backToSetup.addEventListener('click', ()=>{
   setupPanel.classList.remove('hidden');
 });
 
-// swipe up detection on cardContent - use Pointer Events for better cross-platform support
+// ===== Interações de arrastar / reveal interativo =====
 const cardContent = document.getElementById('cardContent');
+const banner = revealBanner; // já definido acima
 let startY = null;
 let pointerActive = false;
-const SWIPE_THRESHOLD = 80; // pixels to consider an upward swipe
+let currentPointerId = null;
+const SWIPE_THRESHOLD = 80; // pixels para considerar reveal
+const MAX_DRAG = 160; // px usado para calcular progress
 
-cardContent.addEventListener('pointerdown', (e) => {
-  // only consider primary pointers
-  if (e.isPrimary !== undefined && !e.isPrimary) return;
+// helper: set banner transform (percent 0..100)
+function setBannerTranslatePercent(pct){
+  // pct = 0 -> fully open (translateY(0%))
+  // pct = 100 -> hidden (translateY(100%))
+  banner.style.transform = `translateY(${pct}%)`;
+}
+
+// pointer down on card content starts the drag
+function onPointerDown(e){
+  if (e.isPrimary === false) return;
   pointerActive = true;
+  currentPointerId = e.pointerId;
   startY = e.clientY;
-  // ensure we can track pointer until up
-  cardContent.setPointerCapture && cardContent.setPointerCapture(e.pointerId);
-});
+  banner.classList.add('dragging'); // remove transition for live drag
+  try { cardContent.setPointerCapture && cardContent.setPointerCapture(e.pointerId); } catch(_){ }
+}
 
-cardContent.addEventListener('pointerup', (e) => {
-  if (!pointerActive || startY === null) return;
-  const endY = e.clientY;
-  const dy = startY - endY; // positive when moved upward
-  if (dy > SWIPE_THRESHOLD) {
-    reveal();
+function onPointerMove(e){
+  if (!pointerActive || startY === null || e.pointerId !== currentPointerId) return;
+  const dy = startY - e.clientY; // positive = moving up
+  if (dy <= 0){
+    // dragging down or no move -> keep hidden position
+    setBannerTranslatePercent(100);
+    return;
   }
+  const progress = Math.min(1, dy / MAX_DRAG);
+  const pct = 100 - (progress * 100); // 100 -> hidden, 0 -> open
+  setBannerTranslatePercent(pct);
+}
+
+function onPointerUp(e){
+  if (!pointerActive || e.pointerId !== currentPointerId) return;
+  const dy = startY - e.clientY;
   pointerActive = false;
   startY = null;
-  try { cardContent.releasePointerCapture && cardContent.releasePointerCapture(e.pointerId); } catch(_){}
-});
+  currentPointerId = null;
+  try { cardContent.releasePointerCapture && cardContent.releasePointerCapture(e.pointerId); } catch(_){ }
+  banner.classList.remove('dragging');
 
-cardContent.addEventListener('pointercancel', (e) => {
+  if (dy > SWIPE_THRESHOLD){
+    // commit reveal
+    openBanner();
+  } else {
+    // reset hide
+    closeBanner();
+  }
+}
+
+// Attach pointer events with sensible checks
+cardContent.addEventListener('pointerdown', onPointerDown);
+cardContent.addEventListener('pointermove', onPointerMove);
+cardContent.addEventListener('pointerup', onPointerUp);
+cardContent.addEventListener('pointercancel', () => { pointerActive=false; startY=null; banner.classList.remove('dragging'); });
+
+// Fallback for touch-only environments (older iOS): map touch -> same handlers
+cardContent.addEventListener('touchstart', (ev)=> {
+  const t = ev.touches[0];
+  startY = t.clientY;
+  pointerActive = true;
+  banner.classList.add('dragging');
+});
+cardContent.addEventListener('touchmove', (ev)=> {
+  if (!pointerActive) return;
+  const t = ev.touches[0];
+  const dy = startY - t.clientY;
+  if (dy <= 0) { setBannerTranslatePercent(100); return; }
+  const progress = Math.min(1, dy / MAX_DRAG);
+  setBannerTranslatePercent(100 - progress*100);
+});
+cardContent.addEventListener('touchend', (ev)=>{
+  if (!pointerActive) return;
+  const t = ev.changedTouches[0];
+  const dy = startY - t.clientY;
   pointerActive = false;
   startY = null;
+  banner.classList.remove('dragging');
+  if (dy > SWIPE_THRESHOLD) openBanner(); else closeBanner();
 });
 
-// allow clicking/tapping to reveal as well
-cardContent.addEventListener('click', (e)=>{ reveal(); });
+// Também permitir tocar/clicar no card para revelar (fallback)
+cardContent.addEventListener('click', (e)=>{
+  // não conflitar quando já estiver aberta
+  if (banner.classList.contains('open')) return;
+  openBanner();
+});
 
+// Swipe-down no próprio banner para ocultar
+let bannerStartY = null;
+banner.addEventListener('pointerdown', (e)=>{
+  bannerStartY = e.clientY;
+  banner.classList.add('dragging');
+  try { banner.setPointerCapture && banner.setPointerCapture(e.pointerId); } catch(_){ }
+});
+banner.addEventListener('pointermove', (e)=>{
+  if (bannerStartY === null) return;
+  const dy = e.clientY - bannerStartY; // positive when dragging down
+  if (dy <= 0) { setBannerTranslatePercent(0); return; } // keep at top
+  const progress = Math.min(1, dy / MAX_DRAG);
+  setBannerTranslatePercent(progress * 100); // 0..100
+});
+banner.addEventListener('pointerup', (e)=>{
+  if (bannerStartY === null) return;
+  const dy = e.clientY - bannerStartY;
+  bannerStartY = null;
+  banner.classList.remove('dragging');
+  try { banner.releasePointerCapture && banner.releasePointerCapture(e.pointerId); } catch(_){ }
+  if (dy > SWIPE_THRESHOLD) closeBanner(); else openBanner();
+});
+banner.addEventListener('pointercancel', ()=>{ bannerStartY=null; banner.classList.remove('dragging'); });
+
+// touch fallback for banner
+banner.addEventListener('touchstart', (ev)=> { bannerStartY = ev.touches[0].clientY; banner.classList.add('dragging'); });
+banner.addEventListener('touchmove', (ev)=> {
+  if (bannerStartY === null) return;
+  const t = ev.touches[0];
+  const dy = t.clientY - bannerStartY;
+  const pct = Math.max(0, Math.min(100, (dy / MAX_DRAG) * 100));
+  setBannerTranslatePercent(pct);
+});
+banner.addEventListener('touchend', (ev)=> {
+  if (bannerStartY === null) return;
+  const t = ev.changedTouches[0];
+  const dy = t.clientY - bannerStartY;
+  bannerStartY = null;
+  banner.classList.remove('dragging');
+  if (dy > SWIPE_THRESHOLD) closeBanner(); else openBanner();
+});
+
+// ===== helpers to open/close the banner with classes =====
+function openBanner(){
+  banner.classList.add('open');
+  banner.style.transform = ''; // let CSS handle it
+  revealed = true;
+}
+function closeBanner(){
+  banner.classList.remove('open');
+  // ensure transform to hidden
+  banner.style.transform = 'translateY(100%)';
+  revealed = false;
+}
+
+// Override original reveal() to use openBanner()
 function reveal(){
   if(revealed) return;
-  revealed = true;
-  // show the content
-  revealBanner.classList.remove('hidden');
-  // if impostor, show role and hint; if not, show word
+  // set content according to role (existing logic)
   const i = currentIndex;
   if(impostors.has(i)){
     roleLabel.textContent = 'IMPOSTOR';
@@ -200,6 +314,7 @@ function reveal(){
     secretWord.textContent = secret.word;
     impostorHint.style.display = 'none';
   }
+  openBanner();
 }
 
 // timer functions
