@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Fake It - Protótipo</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <section id="setup" class="panel">
+        <h1>Fake It - Setup</h1>
+        <div class="form-row">
+          <input id="playerName" type="text" placeholder="Nome do jogador" />
+          <button id="addPlayer">+</button>
+        </div>
+
+        <ul id="playersList" class="players-list"></ul>
+
+        <div class="config-row">
+          <label>Impostores</label>
+          <div class="stepper">
+            <button id="impMinus">-</button>
+            <span id="impCount">1</span>
+            <button id="impPlus">+</button>
+          </div>
+        </div>
+
+        <div class="config-row">
+          <label>Duração (segundos)</label>
+          <div class="stepper">
+            <button id="durMinus">-</button>
+            <span id="duration">180</span>
+            <button id="durPlus">+</button>
+          </div>
+        </div>
+
+        <button id="startGame" class="primary">Iniciar Jogo</button>
+      </section>
+
+      <section id="playerView" class="panel hidden">
+        <div id="playerCard" class="card">
+          <div class="card-header">
+            <button id="backToSetup">✕</button>
+          </div>
+          <div id="cardContent" class="card-content">
+            <h2 id="playerNameLabel">Nome</h2>
+            <p class="hint">Deslize para cima para revelar a palavra</p>
+          </div>
+
+          <div id="revealBanner" class="reveal hidden">
+            <div id="roleBox" class="role-box">
+              <div id="roleLabel" class="role-label">IMPOSTOR</div>
+              <div id="secretWord" class="secret-word">Palavra</div>
+              <div id="impostorHint" class="impostor-hint"></div>
+            </div>
+            <button id="continueBtn" class="primary">Continuar</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="timerView" class="panel hidden">
+        <h2>Discussão</h2>
+        <div id="timerDisplay" class="timer">03:00</div>
+        <div class="timer-controls">
+          <button id="pauseBtn">Pausar</button>
+          <button id="resetBtn">Reiniciar</button>
+        </div>
+      </section>
+
+      <footer class="credits">Protótipo minimal — toque/arraste para cima para revelar</footer>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
