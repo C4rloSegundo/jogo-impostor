@@ -1,6 +1,6 @@
-# Fake It — protótipo
+# Impostores — protótipo
 
-Protótipo simples do jogo "Fake It" (impostor), implementado em HTML/CSS/JS para rodar localmente no navegador.
+Protótipo simples do jogo "Impostores" (impostor), implementado em HTML/CSS/JS para rodar localmente no navegador.
 
 Funcionalidades implementadas:
 - Cadastro de jogadores (adicionar/remover nomes)
@@ -23,3 +23,4 @@ Observações e próximos passos possíveis:
 - Sincronização entre vários dispositivos (WebSockets) para jogo remoto.
 
 Autor: protótipo gerado por assistente
+
