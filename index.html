@@ -27,12 +27,17 @@
         </div>
 
         <div class="config-row">
-          <label>Duração (segundos)</label>
+          <label>Duração (minutos)</label>
           <div class="stepper">
             <button id="durMinus">-</button>
-            <span id="duration">180</span>
+            <span id="duration">3</span>
             <button id="durPlus">+</button>
           </div>
+        </div>
+
+        <div class="config-row">
+          <label>Categorias</label>
+          <div id="categories" class="categories"></div>
         </div>
 
         <button id="startGame" class="primary">Iniciar Jogo</button>
@@ -71,6 +76,7 @@
       <footer class="credits">Protótipo minimal — toque/arraste para cima para revelar</footer>
     </main>
 
+    <script src="palavras.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

@@ -5,17 +5,8 @@ let secret = {word: '', hint: ''};
 let currentIndex = 0;
 let countdown = null;
 
-// sample words with hint for impostor
-const WORDS = [
-  {word: 'Festa na Praia', hint: 'Sol, areia e música'},
-  {word: 'Esponja', hint: 'Absorve água'},
-  {word: 'Pizza', hint: 'Queijo e molho'},
-  {word: 'Cachorro', hint: 'Melhor amigo do homem'},
-  {word: 'Cinema', hint: 'Sessão à noite'},
-  {word: 'Praia', hint: 'Mar e areia'},
-  {word: 'Praça', hint: 'Espaço público'},
-  {word: 'Elevador', hint: 'Sobe e desce'}
-];
+// palavras importadas de `palavras.js` — fallback para vazio
+const WORDS = window.WORDS || [];
 
 // DOM
 const playerNameInput = document.getElementById('playerName');
@@ -47,8 +38,10 @@ const resetBtn = document.getElementById('resetBtn');
 
 // state
 let impostorCount = 1;
-let durationSeconds = 180;
+let durationMinutes = 3;
 let revealed = false;
+// categories selected by the user (Set of category names)
+let selectedCategories = new Set();
 
 function renderPlayers(){
   playersList.innerHTML = '';
@@ -75,12 +68,19 @@ addPlayerBtn.addEventListener('click', ()=>{
 impPlus.addEventListener('click', ()=>{ impostorCount = Math.min(players.length-1, impostorCount+1); impCountEl.textContent = impostorCount; });
 impMinus.addEventListener('click', ()=>{ impostorCount = Math.max(1, impostorCount-1); impCountEl.textContent = impostorCount; });
 
-durPlus.addEventListener('click', ()=>{ durationSeconds = Math.min(60*60, durationSeconds+30); durationEl.textContent = durationSeconds; });
-durMinus.addEventListener('click', ()=>{ durationSeconds = Math.max(30, durationSeconds-30); durationEl.textContent = durationSeconds; });
+// duration now handled in minutes
+durPlus.addEventListener('click', ()=>{ durationMinutes = Math.min(60, durationMinutes+1); durationEl.textContent = durationMinutes; });
+durMinus.addEventListener('click', ()=>{ durationMinutes = Math.max(1, durationMinutes-1); durationEl.textContent = durationMinutes; });
 
 function pickRandomWord(){
-  const idx = Math.floor(Math.random()*WORDS.length);
-  return WORDS[idx];
+  const pool = WORDS.filter(w => {
+    // if no category selected, include all
+    if(selectedCategories.size === 0) return true;
+    return selectedCategories.has(w.category);
+  });
+  if(pool.length === 0) return null;
+  const idx = Math.floor(Math.random()*pool.length);
+  return pool[idx];
 }
 
 function pickImpostors(){
@@ -101,6 +101,7 @@ startGameBtn.addEventListener('click', ()=>{
   impCountEl.textContent = impostorCount;
   // pick secret and impostors
   secret = pickRandomWord();
+  if(!secret){ alert('Nenhuma palavra disponível nas categorias selecionadas. Selecione mais categorias.'); return; }
   pickImpostors();
   currentIndex = 0;
   // show first player card
@@ -133,7 +134,7 @@ continueBtn.addEventListener('click', ()=>{
   if(currentIndex >= players.length){
     // all players seen -> start timer
     playerView.classList.add('hidden');
-    startTimer(durationSeconds);
+    startTimer(durationMinutes * 60);
     timerView.classList.remove('hidden');
   } else {
     showPlayer(currentIndex);
@@ -341,13 +342,71 @@ function startTimer(seconds){
 function stopTimer(){ clearInterval(countdown); countdown = null; running = false; }
 
 pauseBtn.addEventListener('click', ()=>{ running = !running; pauseBtn.textContent = running? 'Pausar' : 'Retomar'; });
-resetBtn.addEventListener('click', ()=>{ stopTimer(); startTimer(durationSeconds); running = true; pauseBtn.textContent = 'Pausar'; });
+resetBtn.addEventListener('click', ()=>{ stopTimer(); startTimer(durationMinutes * 60); running = true; pauseBtn.textContent = 'Pausar'; });
 
 // init UI defaults
 function init(){
   impCountEl.textContent = impostorCount;
-  durationEl.textContent = durationSeconds;
+  durationEl.textContent = durationMinutes;
   renderPlayers();
+  buildCategoryControls();
 }
 
 init();
+
+// Build category checkboxes dynamically from WORDS
+function buildCategoryControls(){
+  const container = document.getElementById('categories');
+  if(!container) return;
+  container.innerHTML = '';
+  const categories = Array.from(new Set(WORDS.map(w => w.category).filter(Boolean)));
+  if(categories.length === 0){ container.textContent = 'Nenhuma categoria disponível.'; return; }
+
+  // helper to (re)populate selectedCategories - default to all selected
+  categories.forEach(cat => selectedCategories.add(cat));
+
+  // Select all / clear all buttons
+  const actions = document.createElement('div');
+  actions.className = 'categories-actions';
+  actions.style.marginBottom = '6px';
+  const selectAllBtn = document.createElement('button');
+  selectAllBtn.textContent = 'Selecionar tudo';
+  selectAllBtn.addEventListener('click', ()=>{
+    selectedCategories.clear();
+    categories.forEach(c=>selectedCategories.add(c));
+    // check all boxes
+    container.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked = true);
+  });
+  const clearBtn = document.createElement('button');
+  clearBtn.textContent = 'Limpar';
+  clearBtn.style.marginLeft = '6px';
+  clearBtn.addEventListener('click', ()=>{
+    selectedCategories.clear();
+    container.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked = false);
+  });
+  actions.appendChild(selectAllBtn);
+  actions.appendChild(clearBtn);
+  container.appendChild(actions);
+
+  const list = document.createElement('div');
+  list.className = 'categories-list';
+  categories.forEach(cat => {
+    const id = `cat_${cat.replace(/\s+/g,'_')}`;
+    const label = document.createElement('label');
+    label.style.display = 'inline-block';
+    label.style.marginRight = '8px';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.id = id;
+    cb.checked = true;
+    cb.addEventListener('change', (e)=>{
+      if(e.target.checked) selectedCategories.add(cat); else selectedCategories.delete(cat);
+    });
+    const span = document.createElement('span');
+    span.textContent = ' ' + cat;
+    label.appendChild(cb);
+    label.appendChild(span);
+    list.appendChild(label);
+  });
+  container.appendChild(list);
+}
