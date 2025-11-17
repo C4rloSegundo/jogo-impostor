@@ -42,6 +42,8 @@ let durationMinutes = 3;
 let revealed = false;
 // categories selected by the user (Set of category names)
 let selectedCategories = new Set();
+// words already used in previous rounds (avoid repeats until pool exhausted)
+const usedWords = new Set();
 
 function renderPlayers(){
   playersList.innerHTML = '';
@@ -73,14 +75,29 @@ durPlus.addEventListener('click', ()=>{ durationMinutes = Math.min(60, durationM
 durMinus.addEventListener('click', ()=>{ durationMinutes = Math.max(1, durationMinutes-1); durationEl.textContent = durationMinutes; });
 
 function pickRandomWord(){
+  // filter by selected categories (or all if none)
   const pool = WORDS.filter(w => {
-    // if no category selected, include all
     if(selectedCategories.size === 0) return true;
     return selectedCategories.has(w.category);
   });
   if(pool.length === 0) return null;
-  const idx = Math.floor(Math.random()*pool.length);
-  return pool[idx];
+
+  // try to pick from words not used yet
+  let notUsed = pool.filter(w => !usedWords.has(w.word));
+
+  // if all words in the pool were already used, reset usedWords for a fresh round
+  if(notUsed.length === 0){
+    // clear usedWords so words can repeat again after exhaustion
+    // (we clear globally to keep implementation simple)
+    usedWords.clear();
+    notUsed = pool.slice();
+  }
+
+  const idx = Math.floor(Math.random() * notUsed.length);
+  const chosen = notUsed[idx];
+  // mark chosen word as used so it won't repeat until pool is exhausted
+  usedWords.add(chosen.word);
+  return chosen;
 }
 
 function pickImpostors(){
