@@ -361,6 +361,34 @@ function stopTimer(){ clearInterval(countdown); countdown = null; running = fals
 pauseBtn.addEventListener('click', ()=>{ running = !running; pauseBtn.textContent = running? 'Pausar' : 'Retomar'; });
 resetBtn.addEventListener('click', ()=>{ stopTimer(); startTimer(durationMinutes * 60); running = true; pauseBtn.textContent = 'Pausar'; });
 
+
+// Botão para mostrar o impostor na tela de discussão (visual)
+const showImpostorBtn = document.getElementById('showImpostorBtn');
+const impostorReveal = document.getElementById('impostorReveal');
+if (showImpostorBtn && impostorReveal) {
+  showImpostorBtn.addEventListener('click', () => {
+    const impostorNames = Array.from(impostors).map(i => players[i]).join(', ');
+    impostorReveal.textContent = 'Impostor' + (impostors.size > 1 ? 'es' : '') + ': ' + impostorNames;
+    impostorReveal.classList.remove('hidden');
+    // Esconde automaticamente após 7 segundos
+    setTimeout(() => {
+      impostorReveal.classList.add('hidden');
+    }, 7000);
+  });
+}
+
+// Botão para voltar ao início sem perder nomes
+const backToStartBtn = document.getElementById('backToStartBtn');
+if (backToStartBtn) {
+  backToStartBtn.addEventListener('click', () => {
+    stopTimer();
+    timerView.classList.add('hidden');
+    setupPanel.classList.remove('hidden');
+    // Não limpa o array players, apenas volta para o setup
+    renderPlayers();
+  });
+}
+
 // init UI defaults
 function init(){
   impCountEl.textContent = impostorCount;

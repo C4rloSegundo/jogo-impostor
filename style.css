@@ -58,6 +58,27 @@ button{cursor:pointer}
 .credits{text-align:center;color:var(--muted);font-size:12px;margin-top:8px}
 
 /* visual affordance arrow */
+
+.impostor-reveal {
+  margin: 24px auto 0 auto;
+  padding: 24px 18px;
+  background: linear-gradient(90deg, #ff3b3b 0%, #ff7b7b 100%);
+  color: #fff;
+  border-radius: 18px;
+  font-size: 1.4rem;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(255,59,59,0.18);
+  max-width: 340px;
+  letter-spacing: 1px;
+  transition: opacity 0.3s;
+  opacity: 1;
+  z-index: 10;
+}
+.impostor-reveal.hidden {
+  display: none;
+  opacity: 0;
+}
 .card::after{content:'⬆';position:absolute;left:50%;transform:translateX(-50%);bottom:120px;font-size:20px;color:var(--accent);opacity:0.25}
 
 @media (max-width:420px){.container{margin:8px}}
