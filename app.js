@@ -3,6 +3,7 @@ const players = [];
 let impostors = new Set();
 let secret = {word: '', hint: ''};
 let currentIndex = 0;
+let order = [];
 let countdown = null;
 
 // palavras importadas de `palavras.js` — fallback para vazio
@@ -100,6 +101,15 @@ function pickRandomWord(){
   return chosen;
 }
 
+function shuffledIndices(n){
+  const arr = Array.from({length: n}, (_, i) => i);
+  for(let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 function pickImpostors(){
   impostors = new Set();
   const indices = players.map((_,i)=>i);
@@ -120,11 +130,12 @@ startGameBtn.addEventListener('click', ()=>{
   secret = pickRandomWord();
   if(!secret){ alert('Nenhuma palavra disponível nas categorias selecionadas. Selecione mais categorias.'); return; }
   pickImpostors();
+  order = shuffledIndices(players.length);
   currentIndex = 0;
   // show first player card
   setupPanel.classList.add('hidden');
   playerView.classList.remove('hidden');
-  showPlayer(currentIndex);
+  showPlayer(order[currentIndex]);
 });
 
 function showPlayer(i){
@@ -154,7 +165,7 @@ continueBtn.addEventListener('click', ()=>{
     startTimer(durationMinutes * 60);
     timerView.classList.remove('hidden');
   } else {
-    showPlayer(currentIndex);
+    showPlayer(order[currentIndex]);
     // scroll to top of card
     playerCard.scrollTop = 0;
   }
@@ -266,6 +277,7 @@ cardContent.addEventListener('click', (e)=>{
 // Swipe-down no próprio banner para ocultar
 let bannerStartY = null;
 banner.addEventListener('pointerdown', (e)=>{
+  if (e.target.closest && e.target.closest('button')) return; // não capturar toques em botões (ex: Continuar)
   bannerStartY = e.clientY;
   banner.classList.add('dragging');
   try { banner.setPointerCapture && banner.setPointerCapture(e.pointerId); } catch(_){ }
@@ -288,7 +300,10 @@ banner.addEventListener('pointerup', (e)=>{
 banner.addEventListener('pointercancel', ()=>{ bannerStartY=null; banner.classList.remove('dragging'); });
 
 // touch fallback for banner
-banner.addEventListener('touchstart', (ev)=> { bannerStartY = ev.touches[0].clientY; banner.classList.add('dragging'); });
+banner.addEventListener('touchstart', (ev)=> {
+  if (ev.target.closest && ev.target.closest('button')) return; // não capturar toques em botões (ex: Continuar)
+  bannerStartY = ev.touches[0].clientY; banner.classList.add('dragging');
+});
 banner.addEventListener('touchmove', (ev)=> {
   if (bannerStartY === null) return;
   const t = ev.touches[0];
