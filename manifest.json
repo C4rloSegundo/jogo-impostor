@@ -3,7 +3,7 @@
   "short_name": "Fake It",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0b0b0b",
+  "background_color": "#050506",
   "theme_color": "#ff3b3b",
   "orientation": "portrait",
   "icons": [

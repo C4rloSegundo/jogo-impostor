@@ -2,8 +2,11 @@
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Fake It - Protótipo</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
+    <title>Fake It</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="style.css" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#ff3b3b" />
@@ -11,74 +14,109 @@
   <body>
     <main class="container">
       <section id="setup" class="panel">
-        <h1>Fake It - Setup</h1>
-        <div class="form-row">
-          <input id="playerName" type="text" placeholder="Nome do jogador" />
-          <button id="addPlayer">+</button>
-        </div>
+        <header class="setup-head">
+          <div class="wordmark"><span>FAKE</span><span class="wm-it">IT</span></div>
+          <p class="tagline">Encontre o impostor antes que seja tarde</p>
+        </header>
 
-        <ul id="playersList" class="players-list"></ul>
-
-        <div class="config-row">
-          <label>Impostores</label>
-          <div class="stepper">
-            <button id="impMinus">-</button>
-            <span id="impCount">1</span>
-            <button id="impPlus">+</button>
+        <section class="glass panel">
+          <div class="panel-label">Jogadores <span class="count-pill" id="playerCount">0</span></div>
+          <div class="add-row">
+            <input id="playerName" class="txt" type="text" placeholder="Nome do jogador" />
+            <button id="addPlayer" class="btn-add">+</button>
           </div>
-        </div>
+          <ul id="playersList" class="player-chips"></ul>
+          <p id="minPlayersHint" class="hint-line hidden">Adicione pelo menos 3 jogadores</p>
+        </section>
 
-        <div class="config-row">
-          <label>Duração (minutos)</label>
-          <div class="stepper">
-            <button id="durMinus">-</button>
-            <span id="duration">3</span>
-            <button id="durPlus">+</button>
-          </div>
-        </div>
-
-        <div class="config-row">
-          <label>Categorias</label>
-          <div id="categories" class="categories"></div>
-        </div>
-
-        <button id="startGame" class="primary">Iniciar Jogo</button>
-      </section>
-
-      <section id="playerView" class="panel hidden">
-        <div id="playerCard" class="card">
-          <div class="card-header">
-            <button id="backToSetup">✕</button>
-          </div>
-          <div id="cardContent" class="card-content">
-            <h2 id="playerNameLabel">Nome</h2>
-            <p class="hint">Deslize para cima para revelar a palavra</p>
-          </div>
-
-          <div id="revealBanner" class="reveal">
-            <div id="roleBox" class="role-box">
-              <div id="roleLabel" class="role-label">IMPOSTOR</div>
-              <div id="secretWord" class="secret-word">Palavra</div>
-              <div id="impostorHint" class="impostor-hint"></div>
+        <section class="glass panel">
+          <div class="cfg-row">
+            <div>
+              <div class="cfg-title">Impostores</div>
+              <div class="cfg-sub">entre os jogadores</div>
             </div>
-            <button id="continueBtn" class="primary">Continuar</button>
+            <div class="stepper">
+              <button id="impMinus" class="step-btn">&minus;</button>
+              <span id="impCount" class="step-val">1</span>
+              <button id="impPlus" class="step-btn">+</button>
+            </div>
+          </div>
+          <div class="cfg-divider"></div>
+          <div class="cfg-row">
+            <div>
+              <div class="cfg-title">Duração</div>
+              <div class="cfg-sub">minutos de discussão</div>
+            </div>
+            <div class="stepper">
+              <button id="durMinus" class="step-btn">&minus;</button>
+              <span id="duration" class="step-val">3</span>
+              <button id="durPlus" class="step-btn">+</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="glass panel">
+          <div class="panel-label">
+            Categorias
+            <span class="cat-actions">
+              <button id="selectAllCats" class="link-btn" type="button">Todas</button>
+              <button id="clearCats" class="link-btn" type="button">Limpar</button>
+            </span>
+          </div>
+          <div id="categories" class="chips"></div>
+        </section>
+
+        <button id="startGame" class="btn-cta" disabled>Iniciar Jogo</button>
+        <p class="credits">Made by Carlos Segundo — passe o celular e boa sorte</p>
+      </section>
+
+      <section id="passView" class="hidden">
+        <div id="passDots" class="pass-progress"></div>
+        <div class="pass-center">
+          <div class="pass-label">Passe o celular para</div>
+          <div id="passName" class="pass-name">Nome</div>
+        </div>
+        <button id="passReadyBtn" class="btn-cta">Sou eu, pode mostrar</button>
+      </section>
+
+      <section id="playerView" class="hidden">
+        <div id="revealDots" class="pass-progress"></div>
+        <div id="playerCard" class="card glass">
+          <div id="cardContent" class="card-inner">
+            <div class="card-eyebrow" id="cardEyebrow">Jogador 1 de 1</div>
+            <h2 id="playerNameLabel" class="card-name">Nome</h2>
+            <div class="swipe-cue"><span class="arrow">⬆</span><span>Deslize para cima para revelar</span></div>
+          </div>
+
+          <div id="revealBanner" class="sheet">
+            <div class="sheet-grip"></div>
+            <div id="roleLabel" class="role-label role-player">PALAVRA</div>
+            <div id="secretWord" class="secret-word">Palavra</div>
+            <div id="impostorHint" class="imp-hint hidden"></div>
+            <p id="sheetNote" class="sheet-note">Memorize e não deixe escapar.</p>
+            <button id="continueBtn" class="btn-continue">Continuar</button>
           </div>
         </div>
       </section>
 
-      <section id="timerView" class="panel hidden">
-        <h2>Discussão</h2>
-        <div id="timerDisplay" class="timer">03:00</div>
-        <div class="timer-controls">
-          <button id="pauseBtn">Pausar</button>
-          <button id="resetBtn">Reiniciar</button>
-            <button id="showImpostorBtn">Mostrar Impostor</button>
-            <button id="backToStartBtn">Voltar ao Início</button>
+      <section id="timerView" class="hidden">
+        <div class="wordmark wm-small"><span>FAKE</span><span class="wm-it">IT</span></div>
+        <div class="ring-wrap">
+          <svg viewBox="0 0 300 300" class="ring">
+            <circle cx="150" cy="150" r="130" class="ring-bg" />
+            <circle cx="150" cy="150" r="130" class="ring-fg" id="ringFg" />
+          </svg>
+          <div id="timerDisplay" class="timer-num">03:00</div>
+          <div id="timerSub" class="timer-sub">Discussão em andamento</div>
         </div>
-        <div id="impostorReveal" class="impostor-reveal hidden"></div>
+        <div id="impostorReveal" class="imp-reveal hidden"></div>
+        <div class="timer-controls">
+          <button id="pauseBtn" class="btn-ghost">Pausar</button>
+          <button id="resetBtn" class="btn-ghost">Reiniciar</button>
+          <button id="showImpostorBtn" class="btn-red">Mostrar Impostor</button>
+          <button id="backToStartBtn" class="btn-ghost">Voltar ao Início</button>
+        </div>
       </section>
-
-      <footer class="credits">Made by Carlos Segundo — toque/arraste para cima para revelar</footer>
     </main>
 
     <script src="palavras.js"></script>

@@ -7,4 +7,6 @@ dist/
 Thumbs.db
 *.log
 .superpowers
-.docs
+/docs
+/design_handoff_fake_it_redesign
+.claude
