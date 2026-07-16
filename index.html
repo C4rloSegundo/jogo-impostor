@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Fake It - Protótipo</title>
     <link rel="stylesheet" href="style.css" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#ff3b3b" />
   </head>
   <body>
     <main class="container">
@@ -81,5 +83,14 @@
 
     <script src="palavras.js"></script>
     <script src="app.js"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/sw.js").catch((err) => {
+            console.error("Falha ao registrar service worker:", err);
+          });
+        });
+      }
+    </script>
   </body>
 </html>
